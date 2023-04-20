@@ -33,7 +33,8 @@ export default function GridToolbar(props) {
                 won: won,
                 lost: lost,
                 active: active,
-                percent: percent
+                percent: percent,
+                total: won + lost + active,
             }, { merge: true })
         }
     }, [props])

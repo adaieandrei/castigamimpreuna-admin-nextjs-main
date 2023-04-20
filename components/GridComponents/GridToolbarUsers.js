@@ -21,6 +21,12 @@ export default function GridToolbarUsers(props) {
             setActiveUsers(active);
             setInactiveUsers(inactive);
             setPercentActive(Math.round((active / (active + inactive)) * 100));
+            setDoc(doc(firestoreDB, 'stats', 'users'), {
+                active: active,
+                inactive: inactive,
+                percentActive: Math.round((active / (active + inactive)) * 100),
+                total: active + inactive
+            }, { merge: true })
         }
     }, [props])
     return (

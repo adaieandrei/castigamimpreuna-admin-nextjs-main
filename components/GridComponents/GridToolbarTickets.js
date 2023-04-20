@@ -29,13 +29,14 @@ export default function GridToolbar(props) {
             setTicketsWon(won);
             setTicketsLost(lost);
             setTicketsActive(active);
-            // setDoc(doc(firestoreDB, 'stats', 'tickets'), {
-            //     won: won,
-            //     lost: lost,
-            //     active: active,
-            //     percent: percent,
-            //     info: "Last 3 days"
-            // }, { merge: true })
+            setDoc(doc(firestoreDB, 'stats', 'tickets'), {
+                won: won,
+                lost: lost,
+                active: active,
+                percent: percent,
+                total: won + lost + active,
+                info: "Last 3 days"
+            }, { merge: true })
         }
     }, [props])
     return (
