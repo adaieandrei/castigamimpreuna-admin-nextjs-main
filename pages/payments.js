@@ -39,7 +39,7 @@ export default function Payments() {
                 item.id = doc.id
                 item.userId = docData.userId
                 item.amount = docData.amount
-                item.createdAt = parseInt(docData.createdAt) * 1000
+                item.createdAt = parseInt(docData.createdAt)
                 item.currency = docData.currency
                 item.intervalCount = docData.intervalCount
                 item.paymentMethod = docData.method

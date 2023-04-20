@@ -13,8 +13,8 @@ const Alert = React.forwardRef(function Alert(props, ref) {
 
 export default function Tickets() {
     const [tickets, setTickets] = React.useState([])
-    const [textButtonUpdateTickets48h, setTextButtonUpdateTickets48h] = React.useState("ACTUALIZARE BILETE 48h")
-    const [textButtonUpdateActiveTickets, setTextButtonUpdateActiveTickets] = React.useState("ACTUALIZARE BILETE ACTIVE")
+    const [textButtonUpdateTickets48h, setTextButtonUpdateTickets48h] = React.useState("Verifica bilete 48h")
+    const [textButtonUpdateActiveTickets, setTextButtonUpdateActiveTickets] = React.useState("Verifica bilete active")
     const [snackbarOpen, setSnackbarOpen] = React.useState(false);
     const [snackbarMessage, setSnackbarMessage] = React.useState("");
     const [snackbarSeverity, setSnackbarSeverity] = React.useState("success");
@@ -32,13 +32,16 @@ export default function Tickets() {
     };
 
     React.useEffect(() => {
-        const collectionName = process.env.NODE_ENV === 'production' ? 'generated' : 'generated'
+        const collectionName = 'generated'
         const diff3daysAgo = new Date() - 3 * 24 * 60 * 60 * 1000
         const unsubscribe = onSnapshot(query(collection(firestoreDB, collectionName), orderBy("dateCreated", "desc"), where("dateCreated", ">", diff3daysAgo)), (querySnapshot) => {
             const data = []
             querySnapshot.forEach((doc) => {
                 const item = doc.data()
+                // console.log(item)
                 item.id = doc.id
+                item.device = item.info?.device
+                item.appVersion = item.info?.appVersion
                 data.push(item)
             })
             // console.log(data)
@@ -50,7 +53,10 @@ export default function Tickets() {
     const updateTicketsActive = async () => {
         setTextButtonUpdateActiveTickets("Incepe actualizarea")
 
-        const totalTickets = tickets.length
+        const games = await getDocs(collection(firestoreDB, 'games'))
+        // console.log(games.docs.length)
+        //length of active tickets
+        const totalTickets = tickets.filter(ticket => ticket.status == "active").length
         let currentTicket = 0
         let ticketsWon = 0
         let ticketsLost = 0
@@ -58,29 +64,31 @@ export default function Tickets() {
 
         for (const ticket of tickets) {
             if (ticket.status == "active") {
-                setTextButtonUpdateTickets48h(`Actualizare bilet ${currentTicket}/${totalTickets}`)
+                setTextButtonUpdateActiveTickets(`Actualizare bilet ${currentTicket}/${totalTickets}`)
                 // console.log(`Verifica biletul #${currentTicket}: ${ticket.id}`)
                 let wins = 0
                 let losses = 0
                 let active = 0
 
-                for (const meci of ticket.meciuri) {
-                    // console.log(`Verifica meciul ${meci}`)
-                    const docRef = doc(firestoreDB, 'games', meci)
-                    const docSnap = await getDoc(docRef)
-                    if (docSnap.exists()) {
-                        const game = docSnap.data()
-                        if (game.status == "win") {
+                const meciPromises = ticket.meciuri.map(async (meci) => {
+
+                    const game = games.docs.find(doc => doc.id == meci)
+                    const gameData = game?.data()
+                    if (gameData) {
+                        if (gameData.status == "win") {
                             wins++
                         }
-                        if (game.status == "lost") {
+                        if (gameData.status == "lost") {
                             losses++
                         }
-                        if (game.status == "active") {
+                        if (gameData.status == "active") {
                             active++
                         }
                     }
-                }
+
+                })
+
+                await Promise.all(meciPromises)
 
                 if (losses) {
                     ticketsLost++
@@ -97,7 +105,7 @@ export default function Tickets() {
                     ticketsWon++
                     // console.log(`Biletul ${ticket.id} este castigat`)
                     await updateDoc(doc(firestoreDB, 'generated', ticket.id), {
-                        status: "won",
+                        status: "win",
                         statistics: {
                             wins: wins,
                             losses: losses,
@@ -122,7 +130,7 @@ export default function Tickets() {
                     setSnackbarMessage(`Actulizarea s-a terminat! Castigate: ${ticketsWon} | Pierdute: ${ticketsLost} | Active: ${ticketsActive}`)
                     setSnackbarOpen(true)
                     setTimeout(() => {
-                        setTextButtonUpdateActiveTickets(`ACTUALIZARE BILETE ACTIVE`)
+                        setTextButtonUpdateActiveTickets(`Verifica bilete active`)
                     }, 3000)
                 }
                 currentTicket++
@@ -131,8 +139,10 @@ export default function Tickets() {
     }
 
     const updateTickets48h = async () => {
+        const games = await getDocs(collection(firestoreDB, 'games'))
         let date48hAgo = new Date().getTime() - 172800000
-        const totalTickets = tickets.length
+        // totalTickets length where dateCreated > 48h
+        const totalTickets = tickets.filter(ticket => ticket.dateCreated > date48hAgo).length
         let currentTicket = 0
         let ticketsWon = 0
         let ticketsLost = 0
@@ -146,23 +156,24 @@ export default function Tickets() {
                 let losses = 0
                 let active = 0
 
-                for (const meci of ticket.meciuri) {
-                    // console.log(`Verifica meciul ${meci}`)
-                    const docRef = doc(firestoreDB, 'games', meci)
-                    const docSnap = await getDoc(docRef)
-                    if (docSnap.exists()) {
-                        const game = docSnap.data()
-                        if (game.status == "win") {
+                const meciPromises = ticket.meciuri.map(async (meci) => {
+                    const game = games.docs.find(doc => doc.id == meci)
+                    const gameData = game?.data()
+                    if (gameData) {
+                        if (gameData.status == "win") {
                             wins++
                         }
-                        if (game.status == "lost") {
+                        if (gameData.status == "lost") {
                             losses++
                         }
-                        if (game.status == "active") {
+                        if (gameData.status == "active") {
                             active++
                         }
                     }
-                }
+
+                })
+
+                await Promise.all(meciPromises)
 
                 if (losses) {
                     ticketsLost++
@@ -204,7 +215,7 @@ export default function Tickets() {
                     setSnackbarMessage(`Actulizarea s-a terminat! Castigate: ${ticketsWon} | Pierdute: ${ticketsLost} | Active: ${ticketsActive}`)
                     setSnackbarOpen(true)
                     setTimeout(() => {
-                        setTextButtonUpdateTickets48h(`ACTUALIZARE BILETE 48h`)
+                        setTextButtonUpdateTickets48h(`Verifica bilete 48h`)
                     }, 3000)
                 }
                 currentTicket++
@@ -215,7 +226,64 @@ export default function Tickets() {
 
 
 
+    const verifyTickets = async (method) => {
+        let dots = '.'
+        // animate text by adding dots every 0.5s
+        const interval = setInterval(() => {
+            if (method === 'active') {
+                setTextButtonUpdateActiveTickets(`Actualizare in curs${dots}}`)
+            } else {
+                setTextButtonUpdateTickets48h(`Actualizare in curs${dots}`)
+            }
+            dots += '.'
+            if (dots.length > 3) dots = '.' // reset dots
+        }, 500)
 
+        await fetch('/api/verifyTickets', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                method: method
+            })
+        })
+            .then(res => res.json())
+            .then(data => {
+                clearInterval(interval)
+                if (method === 'active') {
+                    setTextButtonUpdateActiveTickets(`Actualizare finalizata!`)
+                } else {
+                    setTextButtonUpdateTickets48h(`Actualizare finalizata!`)
+                }
+                setSnackbarMessage(`Actulizarea s-a terminat! Castigate: ${data.ticketsWon} | Pierdute: ${data.ticketsLost} | Active: ${data.ticketsActive}`)
+                setSnackbarOpen(true)
+                setTimeout(() => {
+                    if (method === 'active') {
+                        setTextButtonUpdateActiveTickets(`Verifica bilete active`)
+                    } else {
+                        setTextButtonUpdateTickets48h(`Verifica bilete 48h`)
+                    }
+                }, 3000)
+            }).catch(err => {
+                clearInterval(interval)
+                if (method === 'active') {
+                    setTextButtonUpdateActiveTickets(`Eroare!`)
+                } else {
+                    setTextButtonUpdateTickets48h(`Eroare!`)
+                }
+                setSnackbarMessage(`Eroare la actualizare! ${err.message}}`)
+                setSnackbarSeverity('error')
+                setSnackbarOpen(true)
+                setTimeout(() => {
+                    if (method === 'active') {
+                        setTextButtonUpdateActiveTickets(`Verifica bilete active`)
+                    } else {
+                        setTextButtonUpdateTickets48h(`Verifica bilete 48h`)
+                    }
+                }, 3000)
+            })
+    }
 
     return (
         <>
@@ -225,6 +293,8 @@ export default function Tickets() {
             <div className="flex flex-row gap-2">
                 <Button onClick={updateTicketsActive}>{textButtonUpdateActiveTickets}</Button>
                 <Button onClick={updateTickets48h}>{textButtonUpdateTickets48h}</Button>
+                {/* <Button onClick={() => verifyTickets('active')}>{textButtonUpdateActiveTickets}</Button>
+                <Button onClick={() => verifyTickets(2)}>{textButtonUpdateTickets48h}</Button> */}
             </div>
 
             <GridTickets tickets={tickets} />

@@ -26,6 +26,7 @@ export default function GridTickets(props) {
     React.useEffect(() => {
         if (props) {
             setTickets(props.tickets)
+            // console.log(props.tickets)
         }
     }, [props])
 
@@ -63,9 +64,19 @@ export default function GridTickets(props) {
                 width: 200,
             },
             {
+                field: 'device',
+                headerName: 'Device',
+                width: 80,
+            },
+            {
+                field: 'appVersion',
+                headerName: 'Versiune App',
+                width: 100,
+            },
+            {
                 field: 'codSuperbet',
                 headerName: 'Cod Superbet',
-                width: 200,
+                width: 120,
             },
             {
                 field: 'dateCreated',

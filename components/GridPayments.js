@@ -111,6 +111,8 @@ export default function GridPayments(props) {
                             return <span className='text-white bg-green-600 p-4 font-bold'>Platit</span>
                         case "pending":
                             return <span className='text-white bg-yellow-600 p-4 font-bold'>In asteptare</span>
+                        case "open":
+                            return <span className='text-white bg-red-600 p-4 font-bold'>Neplatita</span>
                         default:
                             return <span className='text-white bg-gray-600 p-4 font-bold'>Undefined</span>
                     }
