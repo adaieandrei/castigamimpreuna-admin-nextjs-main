@@ -18,7 +18,7 @@ export default function Tickets() {
     const [snackbarOpen, setSnackbarOpen] = React.useState(false);
     const [snackbarMessage, setSnackbarMessage] = React.useState("");
     const [snackbarSeverity, setSnackbarSeverity] = React.useState("success");
-    const db = firebase.firestore();
+
     const handleClickSnackbar = () => {
         setSnackbarOpen(true);
     };
