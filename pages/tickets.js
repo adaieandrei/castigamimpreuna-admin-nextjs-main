@@ -18,7 +18,7 @@ export default function Tickets() {
     const [snackbarOpen, setSnackbarOpen] = React.useState(false);
     const [snackbarMessage, setSnackbarMessage] = React.useState("");
     const [snackbarSeverity, setSnackbarSeverity] = React.useState("success");
-
+    const db = firebase.firestore();
     const handleClickSnackbar = () => {
         setSnackbarOpen(true);
     };
@@ -225,17 +225,21 @@ export default function Tickets() {
     }
 
     const deleteIos = async () =>{
-        const query = firestoreDB.collection('generated').where('info.device', '==', "ios");
 
-        query.get().then((querySnapshot) => {
+
+        const unsubscribe = onSnapshot(query(collection(firestoreDB, "generated"),where("info.device", "==", "ios")), (querySnapshot) => {
+            const data = []
             querySnapshot.forEach((doc) => {
-              doc.ref.delete().then(() => {
-              //  console.log(`Document with ID ${doc.id} deleted`);
-              }).catch((error) => {
-                console.error(`Error deleting document: ${error}`);
-              });
-            });
-          });
+                doc.ref.delete().then(() => {
+                    //  console.log(`Document with ID ${doc.id} deleted`);
+                    }).catch((error) => {
+                      console.error(`Error deleting document: ${error}`);
+                    });
+            })
+    
+        })
+
+        return unsubscribe
 
     }
 
