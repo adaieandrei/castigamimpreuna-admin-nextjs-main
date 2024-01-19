@@ -225,7 +225,7 @@ export default function Tickets() {
     }
 
     const deleteIos = async () =>{
-        const query = db.collection('generated').where('info.device', '==', "ios");
+        const query = firestoreDB.collection('generated').where('info.device', '==', "ios");
 
         query.get().then((querySnapshot) => {
             querySnapshot.forEach((doc) => {
