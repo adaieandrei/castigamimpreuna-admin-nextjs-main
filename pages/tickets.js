@@ -224,6 +224,20 @@ export default function Tickets() {
 
     }
 
+    const deleteIos = async () =>{
+        const query = db.collection('generated').where('info.device', '==', "ios");
+
+        query.get().then((querySnapshot) => {
+            querySnapshot.forEach((doc) => {
+              doc.ref.delete().then(() => {
+              //  console.log(`Document with ID ${doc.id} deleted`);
+              }).catch((error) => {
+                console.error(`Error deleting document: ${error}`);
+              });
+            });
+          });
+
+    }
 
 
     const verifyTickets = async (method) => {
@@ -293,7 +307,7 @@ export default function Tickets() {
             <div className="flex flex-row gap-2">
                 <Button onClick={updateTicketsActive}>{textButtonUpdateActiveTickets}</Button>
                 <Button onClick={updateTickets48h}>{textButtonUpdateTickets48h}</Button>
-                <Button>Sterge bilete ios</Button>
+                <Button onClick={deleteIos}>Sterge bilete ios</Button>
                 {/* <Button onClick={() => verifyTickets('active')}>{textButtonUpdateActiveTickets}</Button>
                 <Button onClick={() => verifyTickets(2)}>{textButtonUpdateTickets48h}</Button> */}
             </div>
