@@ -228,7 +228,7 @@ export default function Tickets() {
 
 
         const querySnapshot = await getDocs(
-            query(collection(firestoreDB, 'generated'), where('userDetails.isActive', '==', 'ios'))
+            query(collection(firestoreDB, 'generated'), where('info.device', '==', 'ios'))
           );
           
           querySnapshot.forEach((doc) => {
