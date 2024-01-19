@@ -227,6 +227,7 @@ export default function Tickets() {
     const deleteIos = async () =>{
 
 
+        try {
         const querySnapshot = await getDocs(
             query(collection(firestoreDB, 'generated'), where('info.device', '==', 'ios'))
           );
@@ -241,6 +242,9 @@ export default function Tickets() {
                 console.error(`Error deleting document: ${error}`);
               });
           });
+        }catch (error) {
+            console.error('Error deleting documents:', error);
+          }
 
     }
 
