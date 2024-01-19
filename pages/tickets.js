@@ -227,19 +227,20 @@ export default function Tickets() {
     const deleteIos = async () =>{
 
 
-        const unsubscribe = onSnapshot(query(collection(firestoreDB, "generated"),where("info.device", "==", "ios")), (querySnapshot) => {
-            const data = []
-            querySnapshot.forEach((doc) => {
-                doc.ref.delete().then(() => {
-                    //  console.log(`Document with ID ${doc.id} deleted`);
-                    }).catch((error) => {
-                      console.error(`Error deleting document: ${error}`);
-                    });
-            })
-    
-        })
-
-        return unsubscribe
+        const querySnapshot = await getDocs(
+            query(collection(firestoreDB, 'generated'), where('userDetails.isActive', '==', 'ios'))
+          );
+          
+          querySnapshot.forEach((doc) => {
+            const docRef = doc(firestoreDB, 'generated', doc.id);
+            deleteDoc(docRef)
+              .then(() => {
+               // console.log(`Document with ID ${doc.id} deleted`);
+              })
+              .catch((error) => {
+                console.error(`Error deleting document: ${error}`);
+              });
+          });
 
     }
 
