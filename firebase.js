@@ -21,5 +21,7 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-const defaultProject = firebase.initializeApp(firebaseConfig);
+const defaultProject = !firebase.apps.length
+  ? firebase.initializeApp(firebaseConfig)
+  : firebase.app();
 export let firestoreDB = getFirestore(defaultProject);

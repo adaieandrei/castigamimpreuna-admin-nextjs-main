@@ -1,7 +1,7 @@
 import React from "react";
 import { Button } from "flowbite-react";
 import PropTypes from 'prop-types';
-import { DataGrid } from '@mui/x-data-grid';
+import { DataGrid, useGridApiContext } from '@mui/x-data-grid';
 import { firestoreDB } from '../firebase'
 import { doc, setDoc, collection, getDoc, query, getDocs, where, updateDoc, deleteDoc, onSnapshot, orderBy } from 'firebase/firestore'
 import Dialog from '@mui/material/Dialog';
@@ -11,6 +11,32 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import Game from "./Game";
 import { GridPagination, GridToolbarTickets } from "./GridComponents";
+
+function DateEditCell(props) {
+    const { id, value, field } = props;
+    const apiRef = useGridApiContext();
+    const dateValue = value ? new Date(value) : new Date();
+    // Format for datetime-local input: YYYY-MM-DDTHH:MM
+    const formatted = dateValue.getFullYear() + '-' +
+        String(dateValue.getMonth() + 1).padStart(2, '0') + '-' +
+        String(dateValue.getDate()).padStart(2, '0') + 'T' +
+        String(dateValue.getHours()).padStart(2, '0') + ':' +
+        String(dateValue.getMinutes()).padStart(2, '0');
+
+    return (
+        <input
+            type="datetime-local"
+            value={formatted}
+            onChange={(e) => {
+                const newDate = new Date(e.target.value);
+                if (!isNaN(newDate.getTime())) {
+                    apiRef.current.setEditCellValue({ id, field, value: newDate.getTime() });
+                }
+            }}
+            style={{ width: '100%', padding: '0 8px', border: 'none', outline: 'none', fontSize: '0.85rem' }}
+        />
+    );
+}
 
 export default function GridTickets(props) {
     const [tickets, setTickets] = React.useState([]);
@@ -56,7 +82,12 @@ export default function GridTickets(props) {
             {
                 field: 'totalOdd',
                 headerName: 'Cota finala',
-                width: 100,
+                width: 120,
+                editable: true,
+                valueParser: (value) => {
+                    const parsed = parseFloat(value)
+                    return isNaN(parsed) ? 0 : parsed
+                },
             },
             {
                 field: 'userId',
@@ -82,8 +113,10 @@ export default function GridTickets(props) {
                 field: 'dateCreated',
                 headerName: 'Data crearii',
                 width: 200,
+                editable: true,
+                renderEditCell: (params) => <DateEditCell {...params} />,
                 valueFormatter: (params) => {
-                    return new Date(params.value).toLocaleString();
+                    return new Date(params.value).toLocaleString('ro-RO');
                 },
             },
             {
@@ -191,6 +224,20 @@ export default function GridTickets(props) {
             event.stopPropagation();
         };
 
+        const processRowUpdate = async (newRow, oldRow) => {
+            const changes = {}
+            if (newRow.dateCreated !== oldRow.dateCreated) {
+                changes.dateCreated = newRow.dateCreated
+            }
+            if (newRow.totalOdd !== oldRow.totalOdd) {
+                changes.totalOdd = newRow.totalOdd
+            }
+            if (Object.keys(changes).length > 0) {
+                await updateDoc(doc(firestoreDB, 'generated', newRow.id), changes)
+            }
+            return newRow
+        }
+
         if (tickets.length !== 0) {
             return (
                 <DataGrid
@@ -201,7 +248,7 @@ export default function GridTickets(props) {
                     onRowClick={handleRowClick}
                     sortModel={sortModel}
                     onSortModelChange={(model) => setSortModel(model)}
-                    experimentalFeatures={{ newEditingApi: true }}
+                    processRowUpdate={processRowUpdate}
                     slots={{
                         // footer: GridFooter,
                         pagination: GridPagination,

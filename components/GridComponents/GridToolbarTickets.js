@@ -1,50 +1,44 @@
-import { useState, useEffect } from 'react';
-import { firestoreDB } from '../../firebase'
-import { doc, setDoc, collection, getDoc, query, getDocs, where, updateDoc, deleteDoc, onSnapshot, orderBy } from 'firebase/firestore'
+import { useMemo } from 'react';
 
 export default function GridToolbar(props) {
-    //count how many lost and won and active games
-    const [ticketsWon, setTicketsWon] = useState(0);
-    const [ticketsLost, setTicketsLost] = useState(0);
-    const [ticketsActive, setTicketsActive] = useState(0);
-    const [percentWon, setPercentWon] = useState(0);
-
-    useEffect(() => {
-        if (props) {
-            let won = 0;
-            let lost = 0;
-            let active = 0;
-            let percent = 0;
-            props.tickets.forEach((ticket) => {
-                if (ticket.status === 'win') {
-                    won++;
-                } else if (ticket.status === 'lost') {
-                    lost++;
-                } else {
-                    active++;
-                }
-            })
-            percent = Math.round((won / (won + lost)) * 100);
-            setPercentWon(percent);
-            setTicketsWon(won);
-            setTicketsLost(lost);
-            setTicketsActive(active);
-            setDoc(doc(firestoreDB, 'stats', 'tickets'), {
-                won: won,
-                lost: lost,
-                active: active,
-                percent: percent,
-                total: won + lost + active,
-                info: "Last 3 days"
-            }, { merge: true })
+    const stats = useMemo(() => {
+        if (!props.tickets || props.tickets.length === 0) {
+            return { won: 0, lost: 0, active: 0, total: 0, percent: 0 };
         }
-    }, [props])
+        let won = 0, lost = 0, active = 0;
+        props.tickets.forEach((ticket) => {
+            if (ticket.status === 'win') won++;
+            else if (ticket.status === 'lost') lost++;
+            else active++;
+        });
+        const settled = won + lost;
+        const percent = settled > 0 ? Math.round((won / settled) * 100) : 0;
+        return { won, lost, active, total: won + lost + active, percent };
+    }, [props.tickets]);
+
     return (
-        <div className='flex flex-row justify-end border-b p-2'>
-            <span className='text-sm text-gray-500'>Castigate: {ticketsWon}</span>
-            <span className='text-sm text-gray-500 ml-2'>Pierdute: {ticketsLost}</span>
-            <span className='text-sm text-gray-500 ml-2'>Active: {ticketsActive}</span>
-            <span className='text-sm text-gray-500 ml-2 font-bold'>Procent castig: {percentWon}%</span>
+        <div className="flex flex-wrap items-center gap-3 px-4 py-3 border-b border-green-100 bg-white rounded-t-xl">
+            <StatBadge label="Total" value={stats.total} color="bg-gray-600" />
+            <StatBadge label="Câștigate" value={stats.won} color="bg-emerald-600" />
+            <StatBadge label="Pierdute" value={stats.lost} color="bg-red-600" />
+            <StatBadge label="Active" value={stats.active} color="bg-amber-500" />
+            <div className="ml-auto flex items-center gap-2">
+                <span className="text-xs text-gray-500 uppercase tracking-wide">Rată câștig</span>
+                <span className={`text-lg font-bold ${stats.percent >= 50 ? 'text-emerald-600' : 'text-red-600'}`}>
+                    {stats.percent}%
+                </span>
+            </div>
+        </div>
+    );
+}
+
+function StatBadge({ label, value, color }) {
+    return (
+        <div className="flex items-center gap-2">
+            <span className={`inline-flex items-center justify-center min-w-[28px] h-7 px-2 rounded-full text-white text-xs font-bold ${color}`}>
+                {value}
+            </span>
+            <span className="text-sm text-gray-600">{label}</span>
         </div>
     );
 }

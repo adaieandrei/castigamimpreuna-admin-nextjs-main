@@ -1,52 +1,62 @@
 import React from "react";
-import Link from "next/link";
-import { Button } from "flowbite-react";
-import { useRouter } from 'next/router'
-import IconButton from '@mui/material/IconButton';
-import Box from '@mui/material/Box';
-import { useTheme, ThemeProvider, createTheme } from '@mui/material/styles';
-import Brightness4Icon from '@mui/icons-material/Brightness4';
-import Brightness7Icon from '@mui/icons-material/Brightness7';
+import { useRouter } from 'next/router';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import SportsSoccerIcon from '@mui/icons-material/SportsSoccer';
+import ConfirmationNumberIcon from '@mui/icons-material/ConfirmationNumber';
+import PeopleIcon from '@mui/icons-material/People';
+import PaymentIcon from '@mui/icons-material/Payment';
+import SettingsIcon from '@mui/icons-material/Settings';
 
-const ColorModeContext = React.createContext({ toggleColorMode: () => { } });
+const navItems = [
+    { label: 'Dashboard', path: '/', icon: DashboardIcon },
+    { label: 'Meciuri', path: '/games', icon: SportsSoccerIcon },
+    { label: 'Bilete', path: '/tickets', icon: ConfirmationNumberIcon },
+];
 
 export default function Layout({ children }) {
-    const router = useRouter()
-    const theme = useTheme();
-    const colorMode = React.useContext(ColorModeContext);
-    return (
-        <div>
-            <div className="flex flex-row justify-between">
-                <div className="flex flex-row">
-                    <Button.Group>
-                        <Button color="gray" onClick={() => router.push('/')}>
-                            Dashboard
-                        </Button>
-                        <Button color="gray" onClick={() => router.push('/games')}>
-                            Meciuri
-                        </Button>
-                        <Button color="gray" onClick={() => router.push('/tickets')}>
-                            Bilete
-                        </Button>
-                        <Button color="gray" onClick={() => router.push('/users')}>
-                            Utilizatori
-                        </Button>
-                        <Button color="gray" onClick={() => router.push('/payments')}>
-                            Plati
-                        </Button>
-                        <Button color="gray" onClick={() => router.push('/settings')}>
-                            Setari
-                        </Button>
-                    </Button.Group>
-                </div>
-                <div className="flex flex-row">
-                    <IconButton sx={{ ml: 1 }} onClick={colorMode.toggleColorMode} color="inherit">
-                        {theme.palette.mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
-                    </IconButton>
-                </div>
+    const router = useRouter();
 
-            </div>
-            {children}
+    return (
+        <div className="min-h-screen bg-[#f0fdf4]">
+            {/* Top Navigation */}
+            <nav className="bg-white border-b border-green-100 shadow-sm sticky top-0 z-50">
+                <div className="max-w-[1600px] mx-auto px-4">
+                    <div className="flex items-center h-14 gap-1">
+                        {/* Brand */}
+                        <div className="flex items-center mr-6">
+                            <span className="text-lg font-bold text-green-700 tracking-tight">
+                                Câștigă Împreună
+                            </span>
+                        </div>
+                        {/* Nav Links */}
+                        <div className="flex items-center gap-1">
+                            {navItems.map((item) => {
+                                const Icon = item.icon;
+                                const isActive = router.pathname === item.path;
+                                return (
+                                    <button
+                                        key={item.path}
+                                        onClick={() => router.push(item.path)}
+                                        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors
+                                            ${isActive
+                                                ? 'bg-green-50 text-green-700'
+                                                : 'text-gray-500 hover:text-green-700 hover:bg-green-50/50'
+                                            }`}
+                                    >
+                                        <Icon sx={{ fontSize: 18 }} />
+                                        {item.label}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            {/* Page Content */}
+            <main className="max-w-[1600px] mx-auto p-4">
+                {children}
+            </main>
         </div>
-    )
+    );
 }
