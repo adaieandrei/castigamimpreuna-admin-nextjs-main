@@ -38,6 +38,39 @@ function DateEditCell(props) {
     );
 }
 
+function OddEditCell(props) {
+    const { id, value, field } = props;
+    const apiRef = useGridApiContext();
+    const [inputValue, setInputValue] = React.useState(value != null ? String(value) : '');
+
+    return (
+        <input
+            type="text"
+            inputMode="decimal"
+            autoFocus
+            value={inputValue}
+            onChange={(e) => {
+                const raw = e.target.value.replace(',', '.');
+                // Allow digits, one dot, and empty string while typing
+                if (/^$|^\d+\.?\d*$/.test(raw)) {
+                    setInputValue(raw);
+                    const num = parseFloat(raw);
+                    if (!isNaN(num)) {
+                        apiRef.current.setEditCellValue({ id, field, value: num });
+                    }
+                }
+            }}
+            onBlur={() => {
+                const num = parseFloat(inputValue);
+                if (!isNaN(num)) {
+                    apiRef.current.setEditCellValue({ id, field, value: num });
+                }
+            }}
+            style={{ width: '100%', padding: '0 8px', border: 'none', outline: 'none', fontSize: '0.875rem' }}
+        />
+    );
+}
+
 export default function GridTickets(props) {
     const [tickets, setTickets] = React.useState([]);
     const [sortModel, setSortModel] = React.useState([
@@ -84,10 +117,7 @@ export default function GridTickets(props) {
                 headerName: 'Cota finala',
                 width: 120,
                 editable: true,
-                valueParser: (value) => {
-                    const parsed = parseFloat(value)
-                    return isNaN(parsed) ? 0 : parsed
-                },
+                renderEditCell: (params) => <OddEditCell {...params} />,
             },
             {
                 field: 'userId',
