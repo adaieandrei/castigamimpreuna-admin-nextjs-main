@@ -1,14 +1,9 @@
 import React from "react";
 import { useRouter } from 'next/router';
-import DashboardIcon from '@mui/icons-material/Dashboard';
 import SportsSoccerIcon from '@mui/icons-material/SportsSoccer';
 import ConfirmationNumberIcon from '@mui/icons-material/ConfirmationNumber';
-import PeopleIcon from '@mui/icons-material/People';
-import PaymentIcon from '@mui/icons-material/Payment';
-import SettingsIcon from '@mui/icons-material/Settings';
 
 const navItems = [
-    { label: 'Dashboard', path: '/', icon: DashboardIcon },
     { label: 'Meciuri', path: '/games', icon: SportsSoccerIcon },
     { label: 'Bilete', path: '/tickets', icon: ConfirmationNumberIcon },
 ];

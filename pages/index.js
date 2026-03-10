@@ -1,8 +1,10 @@
+import { useEffect } from 'react'
 import { useRouter } from 'next/router'
+
 export default function Home() {
-    return (
-        <div>
-            <h1>Dashboard</h1>
-        </div>
-    )
+    const router = useRouter()
+    useEffect(() => {
+        router.replace('/games')
+    }, [router])
+    return null
 }
